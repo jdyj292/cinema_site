@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.movies">
+<!-- 리절트 맵 정의 -->	
+	<resultMap id="moviesResult" type="moviesVO">
+		<result property="movies_id" column="movies_id" />
+		<result property="movies_title" column="movies_title" />
+		<result property="movies_fileName" column="fileName" />
+		<result property="movies_status" column="movies_status"/>
+		<result property="movies_credate" column="movies_credate"/>
+		<result property="movies_genre" column="movies_genre"/>
+		<result property="movies_country" column="movies_country"/>
+		<result property="movies_running_time" column="movies_running_time"/>
+		<result property="movies_playdate" column="movies_playdate"/>
+		<result property="movies_age_restriction" column="movies_age_restriction"/>
+		<result property="movies_total_attendance" column="movies_total_attendance"/>
+		<result property="movies_rating" column="movies_rating"/>
+		<result property="movies_director" column="movies_director"/>
+		<result property="movies_cast" column="movies_cast"/>
+		<result property="movies_summary" column="movies_summary"/>
+		<result property="reservation_rate" column="reservation_rate"/>
+
+	</resultMap>	
+
+	<resultMap id="imageResult" type="ImageFileVO">
+	   <result property="movies_id" column="movies_id" />
+	   <result property="fileName" column="fileName" />
+	   <result property="reg_id" column="reg_id" />
+	   <result property="image_id" column="image_id" />
+	   <result property="fileType" column="fileType" />
+	</resultMap>
+	
+	<resultMap id="ratingResult" type="RatingVO">
+	   <result property="rating_id" column="rating_id" />
+	   <result property="movies_id" column="movies_id" />
+	   <result property="member_id" column="member_id" />
+	   <result property="rating_value" column="rating_value" />
+	   <result property="rating_contend" column="rating_contend" />
+	   <result property="rating_date" column="rating_date" />
+	</resultMap>
+	
+	
+	
+   <!-- 영화상태에 따라 리스트로 선택 -->	
+      <select id="selectMoviesSimpleList" parameterType="String" resultMap="moviesResult"   >
+        <![CDATA[
+         select t.*
+          from(
+			select g.*,d.fileName from t_cinema_movies g, t_cinema_movies_image d
+        	where g.movies_id=d.movies_id 
+        	and d.filetype='main_image'
+        	and movies_status=#{moviesStatus}
+            order by g.reservation_rate desc)  t
+	             where   rowNum <9
+	    ]]>
+	</select>
+	
+	 <!-- 영화상태에 따라 리스트로 선택 -->	
+      <select id="selectMoviesList" parameterType="java.util.Map"  resultMap="moviesResult"   >
+        <![CDATA[
+         
+			   select rowNum as recNum,
+			   		  movies_id,
+			          movies_title,
+			          movies_genre,
+			          movies_country,
+			          movies_running_time,
+			          movies_age_restriction,
+			          movies_total_attendance,
+			          movies_rating,
+			          movies_status,
+			          to_char(movies_playdate,'YYYY-MM-DD') as movies_playdate,
+			          movies_director,
+			          movies_cast,
+			          fileName
+			       from (
+			             select g. movies_id,
+			             		 g.movies_title,
+			             		 g.movies_genre,
+			             		 g.movies_country,
+			             		 g.movies_running_time,
+			             		 g.movies_age_restriction,
+			             		 g.movies_total_attendance,
+			             		 g.movies_rating,
+			             		 g.movies_status,
+			             		 g.movies_playdate,
+			             		 g.movies_director,
+			                     g.movies_cast,
+			             		 d.fileName
+			              from t_cinema_movies g, t_cinema_movies_image d
+			              where g.movies_id=d.movies_id 
+        	              and d.filetype='main_image' and g.movies_status =#{movies_status}
+                          order by movies_playdate desc
+					    )
+										
+		
+	    ]]>
+	</select>
+	
+
+      <select id="selectMoviesRankingList" parameterType="java.util.Map"  resultMap="moviesResult"   >
+        <![CDATA[
+         
+			   select movies_id,
+			          movies_title,			        
+			          movies_rating,
+			           movies_status
+	                  
+			   from t_cinema_movies
+        	   where rowNum <51 and (movies_status='상영중' or movies_status='상영종료')
+               order by movies_rating desc          
+			              	
+	    ]]>
+	</select>
+	
+	<!-- 영화이름에 따라 한개 선택 -->	
+	<select id="selectMoviesDetail" resultMap="moviesResult"   parameterType="int"  >
+	    <![CDATA[
+		     select g.*,d.fileName from t_cinema_movies g, t_cinema_movies_image d
+	        where g.movies_id=d.movies_id
+	        and d.filetype='main_image'
+	        and g.movies_id=#{movies_id}
+	        order by g.movies_id
+    	]]>
+	</select>
+	
+	<!-- 영화 이름에 따라 메인이미지가 아닌것들 리스트로 선택 -->	
+	<select id="selectMoviesDetailImage" resultMap="imageResult"   parameterType="int"  >
+	    <![CDATA[
+		    	select * from   t_cinema_movies_image 
+		    	where  fileType!='main_image'
+				and movies_id=#{movies_id}
+    	]]>
+	</select>
+	
+	<select id="selectMoviesBySearchWord" resultMap="moviesResult"   parameterType="String"  >
+     <![CDATA[
+				select g.*,d.fileName from t_cinema_movies g, t_cinema_movies_image d
+		    where g.movies_id=d.movies_id
+		    and d.filetype='main_image'
+		    and g.movies_title like '%'|| #{searchWord} || '%'
+		    order by g.movies_creDate desc
+		]]>
+	</select>	
+	
+	<select id="selectKeywordSearch" resultType="String"   parameterType="String"  >
+	    <![CDATA[
+        select movies_title from t_cinema_movies 
+        where         
+        movies_title like '%'|| #{keyword} || '%'
+        order by movies_creDate desc
+		]]>
+	</select>
+	
+	<insert id="insertNewRating" parameterType="ratingVO"   >
+		<selectKey resultType="int" keyProperty="rating_id" order="BEFORE">
+	    	select seq_rating_id.nextval from dual
+	    </selectKey>
+	    
+	    <![CDATA[
+		   insert into t_cinema_rating(
+		           	           		 rating_id, 
+           						       movies_id,
+           						       member_id,
+         				 	           rating_value,
+         					           rating_contend
+				
+								  )
+					  			values(
+					  			      #{rating_id},
+					  			      #{movies_id},
+					  			      #{member_id},
+					  			      #{rating_value},
+					  			      #{rating_contend}
+
+					 			 )
+		]]>
+		
+		
+	</insert> 
+	
+	<select id="selectAverageRating" resultMap="moviesResult"   parameterType="ratingVO"  >
+	    <![CDATA[
+         select round(avg(rating_value),2)as movies_rating , movies_id from t_cinema_rating where movies_id = #{movies_id} group by movies_id 
+		]]>
+	</select>
+	
+	<update id="updateAverageRating" parameterType="moviesVO"   >
+	   
+	    <![CDATA[
+		   update t_cinema_movies
+		   set movies_rating =#{movies_rating}
+		   where	 
+		   movies_id=#{movies_id} 
+		]]>
+		
+		
+	</update> 
+	
+	 <select id="selectRatingList"  resultMap="ratingResult"  parameterType="int"  >
+        <![CDATA[
+         select t.*
+          from(
+			select * from t_cinema_rating 
+			where #{movies_id}=movies_id
+            order by rating_date desc)  t
+	             where   rowNum <9
+	    ]]>
+	</select>
+	
+	<select id="selectCheckRating"  resultType="String"  parameterType="java.util.Map"  >
+	<![CDATA[
+	select 1 as cnt from dual where exists (select  rating_id 
+              from t_cinema_rating
+              where member_id = #{member_id} and movies_id =#{movies_id})
+              ]]>
+	</select>
+	
+	
+	<select id="selectMoviesAudience"  resultType="int"    parameterType="int"  >
+	    <![CDATA[    	
+		select sum(RESERVATION_ADULT +RESERVATION_TEENAGER) from T_CINEMA_RESERVATION where movies_id = #{movies_id}
+		and to_char(SYSDATE-10,'yyyy-mm-dd') < to_char(RESERVATION_DATE,'yyyy-mm-dd')
+    	]]>
+	</select>
+	
+	<select id="selectEntireAudience"  resultType="int"     >
+	    <![CDATA[    	
+		select sum(RESERVATION_ADULT +RESERVATION_TEENAGER) from T_CINEMA_RESERVATION where 
+		to_char(SYSDATE-10,'yyyy-mm-dd') < to_char(RESERVATION_DATE,'yyyy-mm-dd')
+    	]]>
+	</select>
+	
+	<update id="updateReservationRate"   >
+	   
+	    <![CDATA[
+		   update t_cinema_movies A
+		   set A.RESERVATION_RATE = (SELECT sum(B.RESERVATION_ADULT +B.RESERVATION_TEENAGER) from T_CINEMA_RESERVATION B
+           where A.movies_id= B.movies_id and to_char(SYSDATE-5,'yyyy-mm-dd') < to_char(RESERVATION_DATE,'yyyy-mm-dd') )
+           /(SELECT sum(C.RESERVATION_ADULT +C.RESERVATION_TEENAGER) from T_CINEMA_RESERVATION C
+           where to_char(SYSDATE-5,'yyyy-mm-dd') < to_char(RESERVATION_DATE,'yyyy-mm-dd') )*100
+		
+		]]>		
+	</update> 	
+	
+	<update id="updateReservationNullRate"   >
+	   
+	    <![CDATA[
+		   update t_cinema_movies 
+		   set reservation_rate ='0'
+		   where reservation_rate is null
+		
+		]]>	
+	</update> 	
+	
+	<update id="updateToBeRealesed"  parameterType="String"   >
+	   
+	    <![CDATA[
+		   update t_cinema_movies
+		   set movies_status =#{movies_status}
+		   where to_char(sysdate,'yyyy-mm-dd ') < movies_playdate  
+		
+		]]>
+			<!-- 개봉일이 안 지났다면 개봉예정으로  -->			
+	</update> 
+	
+	<update id="updateOnScreen"  parameterType="String"   >
+	   
+	    <![CDATA[
+		   update t_cinema_movies a
+		   set movies_status =#{movies_status}
+		   where to_char(sysdate,'yyyy-mm-dd ') >= movies_playdate and exists(select * from t_cinema_schedule b where a.movies_id = b.movies_id and to_char(schedule_end_date,'yyyy-mm-dd HH24:MI') > to_char(sysdate,'yyyy-mm-dd HH24:MI') ) 
+	
+		]]>
+			<!-- 개봉일이 지나고 같은 영화를 아직 상영예정인 스케쥴이 있다면 상영중 으로  -->		
+	</update> 
+	
+	<update id="updateScreeningOver"  parameterType="String"   >
+	   
+	    <![CDATA[
+		  update t_cinema_movies a
+		   set movies_status =#{movies_status}
+		   where to_char(sysdate,'yyyy-mm-dd ') >= movies_playdate and not exists(select * from t_cinema_schedule b where a.movies_id = b.movies_id and to_char(schedule_end_date,'yyyy-mm-dd HH24:MI') > to_char(sysdate,'yyyy-mm-dd HH24:MI') ) 
+		]]>
+			<!-- 개봉일이 지나고 같은 영화를 아직 상영예정인 스케쥴이 없다면 상영종료 로  -->			
+	</update> 
+	
+	
+	
+
+</mapper>

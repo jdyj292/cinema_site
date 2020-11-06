@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration 	PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+  <typeAliases>
+    
+    <typeAlias type="com.cinema.movies.vo.MoviesVO" alias="moviesVO" />
+    <typeAlias type="com.cinema.movies.vo.ImageFileVO" alias="imageFileVO" />
+    <typeAlias type="com.cinema.member.vo.MemberVO" alias="memberVO" />
+    <typeAlias type="com.cinema.admin.schedule.vo.ScheduleVO" alias="scheduleVO" />
+    <typeAlias type="com.cinema.reservation.vo.ReservationVO" alias="reservationVO" />
+    <typeAlias type="com.cinema.reservation.vo.SeatsVO" alias="seatsVO" />
+    <typeAlias type="com.cinema.movies.vo.RatingVO" alias="ratingVO" />
+    
+  </typeAliases>
+</configuration>
+
+
+

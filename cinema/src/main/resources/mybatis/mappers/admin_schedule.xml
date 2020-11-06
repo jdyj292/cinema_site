@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.admin.schedule">
+<!-- 리절트 맵 정의 -->	
+	<resultMap id="scheduleResult" type="scheduleVO">
+		<result property="schedule_id" column="schedule_id" />
+		<result property="movies_id" column="movies_id" />
+		<result property="movies_title" column="movies_title" />
+		<result property="schedule_place" column="schedule_place" />
+		<result property="schedule_begin_date" column="schedule_begin_date"/>
+		<result property="schedule_end_date" column="schedule_end_date"/>
+		
+
+	</resultMap>	
+
+
+	
+	
+	<insert id="insertNewSchedule" parameterType="scheduleVO"   >
+		<selectKey resultType="int" keyProperty="schedule_id" order="BEFORE">
+	    	select seq_schedule_id.nextval from dual
+	    </selectKey>
+	    
+	    <![CDATA[
+		   insert into t_cinema_schedule(
+		           	           		 schedule_id, 
+           						       movies_id,
+           						       movies_title,
+         				 	           schedule_place,
+         					           schedule_begin_date,  					           
+										schedule_end_date										
+								  )
+					  			values(
+					  			      #{schedule_id},
+					  			      #{movies_id},
+					  			      #{movies_title},
+					  			      #{schedule_place},
+					  			      TO_DATE(#{schedule_begin_date}, 'YYYY-MM-DD HH24:MI:SS'),				  			     
+					  			      TO_DATE(#{schedule_end_date}, 'YYYY-MM-DD HH24:MI:SS')			  			      
+					 			 )
+		]]>
+				
+		
+	</insert> 
+	
+	<update id="updateMoviesStatus" parameterType="scheduleVO" >
+	   
+	    <![CDATA[
+			update t_cinema_movies
+			       set movies_status='상영중'
+		 	       where movies_id=#{movies_id} 
+		 	       			      
+    	]]>
+	
+	</update>	
+		
+	<select id="selectNewScheduleList" resultMap="scheduleResult"   parameterType="java.util.Map"  >
+	    <![CDATA[
+		  select * from (
+			   select rowNum as recNum,
+			   		  schedule_id, 
+			          movies_id,
+			          movies_title,
+			          schedule_place,			        			          
+			          to_char(schedule_begin_date,'YYYY-MM-DD HH24:MI') as schedule_begin_date,
+			          to_char(schedule_end_date,'YYYY-MM-DD HH24:MI') as schedule_end_date
+			       from (
+			             select  schedule_id,
+			             		 movies_id,
+			             		 movies_title,
+			             		 schedule_place,
+			             		 schedule_begin_date,
+			             		 schedule_end_date			             		
+			              from t_cinema_schedule 
+			                where  to_char(schedule_begin_date,'YYYY-MM-DD')  between #{beginDate} and #{endDate}  and movies_title like '%'|| #{searchWord,jdbcType=VARCHAR} || '%' 
+			               order by schedule_begin_date desc
+					    )
+				)							
+			where				
+		recNum between (#{section}-1)*100+ (#{pageNum}-1)*10+1 and (#{section}-1)*100+(#{pageNum})*10				        
+    	]]>
+	</select>
+	
+	<select id="selectNewScheduleListSize" resultType="int"   parameterType="java.util.Map"  >
+	    <![CDATA[
+			             select  COUNT(*)
+			              from t_cinema_schedule 
+			                where  to_char(schedule_begin_date,'YYYY-MM-DD') between #{beginDate} and #{endDate} and movies_title like '%'|| #{searchWord,jdbcType=VARCHAR} || '%' 
+			         													        
+    	]]>
+	</select>
+ 
+	
+	<select id="selectScheduleDetail" resultMap="scheduleResult"   parameterType="String"  >
+	    <![CDATA[
+		     select g.*,to_char(g.schedule_begin_date,'YYYY-MM-DD') as schedule_begin_date,to_char(g.schedule_end_date,'YYYY-MM-DD') as schedule_end_date from t_cinema_schedule g
+	        where g.schedule_id=#{schedule_id}
+	        order by g.schedule_id
+    	]]>
+	</select>
+
+	
+	
+<update id="updateScheduleInfo" parameterType="java.util.HashMap" >
+	   update t_cinema_schedule
+	    <set> 
+	      
+	      <if test=" movies_id!='' and movies_id!=null">
+	        movies_id=#{movies_id},
+	      </if>
+	      <if test=" movies_title!='' and movies_title!=null">
+	        movies_title=#{movies_title},
+	      </if>
+	      <if test=" schedule_place!='' and schedule_place!=null">
+	        schedule_place=#{schedule_place},
+	      </if>
+	      <if test=" schedule_begin_date!='' and schedule_begin_date!=null">
+	        schedule_begin_date=TO_DATE(#{schedule_begin_date}, 'YYYY-MM-DD HH24:MI:SS'),
+	      </if>
+	      <if test=" schedule_end_date!='' and schedule_end_date!=null">
+	        schedule_end_date=TO_DATE(#{schedule_end_date}, 'YYYY-MM-DD HH24:MI:SS'),
+	      </if>
+	      
+	      
+	     </set>
+	    where 
+	    schedule_id=#{schedule_id}
+	
+	</update>	
+
+
+</mapper>
+

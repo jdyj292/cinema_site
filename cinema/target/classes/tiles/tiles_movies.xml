@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+"-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+"http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+<tiles-definitions>
+
+   
+   <definition name="/movies/moviesDetail" extends="baseLayout">
+      <put-attribute name="title" value="상세페이지" />
+      <put-attribute name="body" value="/WEB-INF/views/movies/moviesDetail.jsp" />
+   </definition>
+   
+   <definition name="/movies/searchMovies" extends="baseLayout">
+         <put-attribute name="title" value="상품 검색 결과 페이지" />
+         <put-attribute name="body" value="/WEB-INF/views/movies/searchMovies.jsp" />
+      </definition>
+   <definition name="/movies/addRatingForm" extends="baseLayout">
+         <put-attribute name="title" value="평점 입력 페이지" />
+         <put-attribute name="body" value="/WEB-INF/views/movies/addRatingForm.jsp" />
+   </definition>
+      
+   <definition name="/movies/moviesList" extends="baseLayout">
+         <put-attribute name="title" value="영화 페이지" />
+         <put-attribute name="body" value="/WEB-INF/views/movies/moviesList.jsp" />
+   </definition>
+   
+   <definition name="/movies/moviesRanking" extends="baseLayout">
+         <put-attribute name="title" value="영화 페이지" />
+         <put-attribute name="body" value="/WEB-INF/views/movies/moviesRanking.jsp" />
+   </definition>
+ 
+  
+</tiles-definitions>
+
+

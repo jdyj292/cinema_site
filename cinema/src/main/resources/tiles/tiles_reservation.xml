@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+<tiles-definitions>
+    <definition name="/reservation/choiceScheduleForm" extends="baseLayout">
+       <put-attribute name="title" value="영화 선택 페이지" />
+       <put-attribute name="body" value="/WEB-INF/views/reservation/choiceScheduleForm.jsp" />
+    </definition>
+    <definition name="/reservation/updateAddressForm" extends="baseLayout">
+       <put-attribute name="title" value="영화 선택 페이지" />
+       <put-attribute name="body" value="/WEB-INF/views/reservation/updateAddressForm.jsp" />
+    </definition>
+    <definition name="/reservation/selectSeatsForm" extends="baseLayout">
+       <put-attribute name="title" value="영화 선택 페이지" />
+       <put-attribute name="body" value="/WEB-INF/views/reservation/selectSeatsForm.jsp" />
+    </definition>
+    <definition name="/reservation/reservationForm" extends="baseLayout">
+       <put-attribute name="title" value="영화 선택 페이지" />
+       <put-attribute name="body" value="/WEB-INF/views/reservation/reservationForm.jsp" />
+    </definition>
+     <definition name="/reservation/addNewReservation" extends="baseLayout">
+       <put-attribute name="title" value="영화 선택 페이지" />
+       <put-attribute name="body" value="/WEB-INF/views/reservation/reservationResult.jsp" />
+    </definition>
+    
+    
+</tiles-definitions>
+
+

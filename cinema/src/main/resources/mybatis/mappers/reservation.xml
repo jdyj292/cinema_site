@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.reservation">
+<!-- 리절트 맵 정의 -->	
+	<resultMap id="moviesResult" type="moviesVO">
+		<result property="movies_id" column="movies_id" />
+		<result property="movies_title" column="movies_title" />
+		<result property="movies_fileName" column="fileName" />
+		<result property="movies_status" column="movies_status"/>
+		<result property="movies_credate" column="movies_credate"/>
+		<result property="movies_genre" column="movies_genre"/>
+		<result property="movies_country" column="movies_country"/>
+		<result property="movies_running_time" column="movies_running_time"/>
+		<result property="movies_playdate" column="movies_playdate"/>
+		<result property="movies_age_restriction" column="movies_age_restriction"/>
+		<result property="movies_total_attendance" column="movies_total_attendance"/>
+		<result property="movies_rating" column="movies_rating"/>
+		<result property="movies_director" column="movies_director"/>
+		<result property="movies_cast" column="movies_cast"/>
+		<result property="movies_summary" column="movies_summary"/>
+	</resultMap>
+	
+	<resultMap id="reservationResult" type="reservationVO">
+		<result property="reservation_id" column="reservation_id" />
+		<result property="schedule_id" column="schedule_id" />		
+		<result property="member_id" column="member_id" />
+		<result property="reservation_seat" column="reservation_seat"/>
+		<result property="reservation_email1" column="reservation_email1" />
+		<result property="reservation_email2" column="reservation_email2" />
+		<result property="reservation_hp1" column="reservation_hp1" />
+		<result property="reservation_hp2" column="reservation_hp2" />
+		<result property="reservation_hp3" column="reservation_hp3" />
+		<result property="reservation_adult" column="reservation_adult" />
+		<result property="reservation_teenager" column="reservation_teenager" />
+		<result property="movies_title" column="movies_title" />
+		<result property="member_name" column="member_name" />
+		<result property="reservation_price" column="reservation_price" />
+		<result property="pay_method" column="pay_method" />
+		<result property="card_com_name" column="card_com_name" />
+		<result property="reservation_date" column="reservation_date" />
+		<result property="card_pay_month" column="card_pay_month" />
+		<result property="pay_order_tel1" column="pay_order_tel1" />
+		<result property="pay_order_tel2" column="pay_order_tel2" />
+		<result property="pay_order_tel3" column="pay_order_tel3" />
+		<result property="movies_id" column="movies_id" />
+	</resultMap>	
+	
+	<resultMap id="scheduleResult" type="scheduleVO">
+		<result property="schedule_id" column="schedule_id" />
+		<result property="movies_id" column="movies_id" />
+		<result property="movies_fileName" column="fileName" />
+		<result property="movies_title" column="movies_title" />
+		<result property="schedule_place" column="schedule_place" />
+		<result property="schedule_begin_date" column="schedule_begin_date"/>
+		<result property="schedule_end_date" column="schedule_end_date"/>
+		<result property="movies_age_restriction" column="movies_age_restriction"/>
+		
+	</resultMap>
+	
+	<resultMap id="seatsResult" type="seatsVO">
+		<result property="schedule_id" column="schedule_id" />
+		<result property="seats_id" column="seats_id" />
+		
+	</resultMap>
+	
+		
+	
+	
+	 <select id="selectScheduleList" resultMap="scheduleResult"   >
+        <![CDATA[        
+			select a.movies_title,a.movies_id,d.filename,c.movies_age_restriction from t_cinema_schedule a,t_cinema_movies_image d,t_cinema_movies c
+            where a.schedule_begin_date > sysdate +(1/24) and a.movies_id=d.movies_id and d.filetype='main_image' and a.movies_id=c.movies_id
+			group by a.movies_title,a.movies_id,d.filename,c.movies_age_restriction            
+            order by a.movies_title desc
+	    ]]>
+	</select>
+	
+	<select id="selectScheduleDayList" resultType="String"   parameterType="java.util.Map"  >
+	      <![CDATA[
+	       select to_char(schedule_begin_date,'YYYY-MM-DD') from t_cinema_schedule 
+           where  movies_id=#{movies_id} and schedule_begin_date > sysdate +(1/24)
+           group by to_char(schedule_begin_date,'YYYY-MM-DD')
+           order by to_char(schedule_begin_date,'YYYY-MM-DD') asc
+          ]]>
+    </select>
+    
+    <select id="selectScheduleTimeList" resultMap="scheduleResult"   parameterType="java.util.Map"  >
+	      <![CDATA[
+	       select to_char(schedule_begin_date,'HH24:MI') as "schedule_begin_time",schedule_id, to_char(schedule_begin_date,'YY-MM-DD/HH24:MI') as "schedule_begin_date"
+	       , to_char(schedule_end_date,'YY-MM-DD/HH24:MI') as "schedule_end_date" from t_cinema_schedule  
+           where  movies_id=#{movies_id} and schedule_begin_date > sysdate +(1/24) and
+           schedule_begin_date between to_date(#{schedule_day},'YYYY-MM-DD') and to_date(#{schedule_day},'YYYY-MM-DD')+1-1/(24*60*60)     
+          
+           order by to_char(schedule_begin_date,'HH24:MI') asc          
+          ]]>
+    </select>
+    
+    <delete id="deleteSeatsTimeOut" parameterType="int">
+        <![CDATA[
+	  delete from t_cinema_seats
+	  where schedule_id=#{schedule_id} and to_char(seats_date+31/(24*60),'YYYY-MM-DD HH24:MI:SS') < to_char(sysdate,'YYYY-MM-DD HH24:MI:SS') and
+	  purchase_status is null
+	   ]]>
+	</delete>
+    
+	
+	 <select id="selectSeatsList" resultType="String" parameterType="int"  >
+        <![CDATA[
+			select seats_id from t_cinema_seats 
+			where schedule_id=#{schedule_id} 
+	    ]]>
+	</select>
+	
+	<insert id="insertNewSeats" parameterType="seatsVO"   >
+		    
+	    <![CDATA[
+		   insert into t_cinema_seats(
+		           	           		 schedule_id, 
+           						       seats_id
+           						 															
+								  )
+					  			values(
+					  			      #{schedule_id},
+					  			      #{seats_id} 			  
+					  			    				  			      
+					 			 )
+		]]>
+		
+	</insert> 
+	
+	<delete id="deleteSeats" parameterType="seatsVO">
+        <![CDATA[
+	  delete from t_cinema_seats
+	  where schedule_id=#{schedule_id} and seats_id=#{seats_id}
+	 
+	   ]]>
+	</delete>
+	
+	
+	<update id="updateSeatsPurchaseStatus" parameterType="seatsVO" >
+	   update t_cinema_seats
+	    set purchase_status='y'	       	             		      	           
+	    where  schedule_id=#{schedule_id} and seats_id=#{seats_id}
+	
+	</update>	
+	
+	
+	<insert id="insertNewReservation" parameterType="reservationVO"   >
+	    <selectKey resultType="int" keyProperty="reservation_id" order="BEFORE">
+	    	select seq_reservation_id.nextval from dual
+	    </selectKey>
+		    
+	    <![CDATA[
+		   insert into t_cinema_reservation(
+		           	           		 reservation_id, 
+           						       schedule_id,
+           						       member_id,
+           						       reservation_seats,
+           						       reservation_email1,
+           						       reservation_email2,
+           						       reservation_hp1,
+           						       reservation_hp2,
+           						       reservation_hp3,
+           						       reservation_adult,
+           						       reservation_teenager,
+           						       movies_title,
+           						       member_name,
+           						       reservation_price,
+           						       pay_method,
+           						       card_com_name,
+           						       card_pay_month,
+           						       pay_order_tel1,
+           						       pay_order_tel2,
+           						       pay_order_tel3,
+           						       movies_id					               						 															
+								  )
+					  			values(
+					  			      #{reservation_id},
+					  			      #{schedule_id},
+					  			      #{member_id},
+					  			      #{reservation_seats},
+					  			      #{reservation_email1},
+					  			      #{reservation_email2},
+					  			      #{reservation_hp1},
+					  			      #{reservation_hp2},
+					  			      #{reservation_hp3},
+					  			      #{reservation_adult},
+					  			      #{reservation_teenager},
+					  			      #{movies_title},
+					  			      #{member_name},
+					  			      #{reservation_price},
+					  			      #{pay_method},
+					  			      #{card_com_name},
+					  			      #{card_pay_month},
+					  			      #{pay_order_tel1},
+					  			      #{pay_order_tel2},
+					  			      #{pay_order_tel3},
+					  			      #{movies_id}						  			    				  			      
+					 			 )
+		]]>
+		
+	</insert> 
+	
+	
+    
+  
+
+</mapper>
+

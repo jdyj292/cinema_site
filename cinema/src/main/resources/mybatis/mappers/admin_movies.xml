@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+	PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="mapper.admin.movies">
+<!-- 리절트 맵 정의 -->	
+	<resultMap id="moviesResult" type="moviesVO">
+		<result property="movies_id" column="movies_id" />
+		<result property="movies_title" column="movies_title" />
+		<result property="movies_fileName" column="fileName" />
+		<result property="movies_status" column="movies_status"/>
+		<result property="movies_credate" column="movies_credate"/>
+		<result property="movies_genre" column="movies_genre"/>
+		<result property="movies_country" column="movies_country"/>
+		<result property="movies_running_time" column="movies_running_time"/>
+		<result property="movies_playdate" column="movies_playdate"/>
+		<result property="movies_age_restriction" column="movies_age_restriction"/>
+		<result property="movies_total_attendance" column="movies_total_attendance"/>
+		<result property="movies_rating" column="movies_rating"/>
+		<result property="movies_director" column="movies_director"/>
+		<result property="movies_cast" column="movies_cast"/>
+		<result property="movies_summary" column="movies_summary"/>
+
+	</resultMap>	
+
+	<resultMap id="imageResult" type="ImageFileVO">
+	   <result property="movies_id" column="movies_id" />
+	   <result property="fileName" column="fileName" />
+	   <result property="reg_id" column="reg_id" />
+	   <result property="image_id" column="image_id" />
+	   <result property="fileType" column="fileType" />
+	</resultMap>
+	
+	
+	<insert id="insertNewMovies" parameterType="java.util.Map"   >
+		<selectKey resultType="String" keyProperty="movies_id" order="BEFORE">
+	    	select seq_movies_id.nextval from dual
+	    </selectKey>
+	    
+	    <![CDATA[
+		   insert into t_cinema_movies(
+		           	           		 movies_id, 
+           						       movies_title,
+         				 	           movies_status,
+         					           movies_genre,         					           
+										movies_country,
+										movies_running_time,
+									    movies_playdate,
+										movies_age_restriction,										
+										movies_director,
+										movies_cast,
+										movies_summary
+										
+								  )
+					  			values(
+					  			      #{movies_id},
+					  			      #{movies_title},
+					  			      #{movies_status},
+					  			      #{movies_genre},					  			     
+					  			      #{movies_country },
+					  			      #{movies_running_time},
+					  			      #{movies_playdate},
+					  			      #{movies_age_restriction},
+					  			      #{movies_director},
+									  #{movies_cast},
+									  #{movies_summary}
+		  			      
+					 			 )
+		]]>
+		
+		
+		
+	</insert> 
+		<insert id="insertMoviesImageFile" parameterType="imageFileVO"   >
+		<selectKey resultType="int" keyProperty="image_id" order="BEFORE">
+	    	select seq_image_id.nextval from dual
+	    </selectKey>
+	    <![CDATA[
+		   insert into t_cinema_movies_image (image_id,
+		                                     movies_id,
+																				 fileName,
+																				 fileType,
+																				 reg_id)
+											   					values(#{image_id},
+											   					 			 #{movies_id},
+											   							 	 #{fileName},
+											   								 #{fileType},
+											   								 #{reg_id} )
+		]]>
+	</insert> 
+	<select id="selectNewMoviesList" resultMap="moviesResult"   parameterType="java.util.Map"  >
+	    <![CDATA[
+		  select * from (
+			   select rowNum as recNum,
+			   		  movies_id,
+			          movies_title,
+			          movies_genre,
+			          movies_country,
+			          movies_age_restriction,
+			          movies_total_attendance,
+			          to_char(movies_playdate,'YYYY-MM-DD') as movies_playdate
+			       from (
+			             select  movies_id,
+			             		 movies_title,
+			             		 movies_genre,
+			             		 movies_country,
+			             		 movies_age_restriction,
+			             		 movies_total_attendance,
+			             		 movies_playdate
+			              from t_cinema_movies 
+			                where  to_char(movies_playdate,'YYYY-MM-DD') between #{beginDate} and #{endDate} and movies_title like '%'|| #{searchWord,jdbcType=VARCHAR} || '%' 
+			               order by movies_creDate desc
+					    )
+				)							
+			where				
+		recNum between (#{section}-1)*100+ (#{pageNum}-1)*10+1 and (#{section}-1)*100+(#{pageNum})*10				        
+    	]]>
+	</select>
+	
+	<select id="selectNewMoviesListSize" resultType="int"   parameterType="java.util.Map"  >
+	    <![CDATA[
+			             select  COUNT(*)
+			              from t_cinema_movies 
+			                where  to_char(movies_playdate,'YYYY-MM-DD') between #{beginDate} and #{endDate} and movies_title like '%'|| #{searchWord,jdbcType=VARCHAR} || '%' 
+			         													        
+    	]]>
+	</select>
+	
+	<select id="selectKeywordSearch" resultType="String"   parameterType="String"  >
+	    <![CDATA[
+	     select * from (
+			   select rowNum as recNum,
+			   		  movies_id,
+			          movies_title,
+			          movies_genre,
+			          movies_country,
+			          movies_age_restriction,
+			          movies_total_attendance,
+			          to_char(movies_playdate,'YYYY-MM-DD') as movies_playdate
+			       from (
+			             select  movies_id,
+			             		 movies_title,
+			             		 movies_genre,
+			             		 movies_country,
+			             		 movies_age_restriction,
+			             		 movies_total_attendance,
+			             		 movies_playdate
+			              from t_cinema_movies 
+			                where  to_char(movies_creDate,'YYYY-MM-DD')  between #{beginDate} and #{endDate} and  movies_title like '%'|| #{keyword} || '%'
+			               order by movies_creDate desc
+					    )
+				)							
+			where				
+		recNum between (#{section}-1)*100+ (#{pageNum}-1)*10+1 and (#{section}-1)*100+(#{pageNum})*10	
+		]]>
+	</select>
+	
+ 
+	
+	<select id="selectMoviesDetail" resultMap="moviesResult"   parameterType="String"  >
+	    <![CDATA[
+		     select g.*,to_char(g.movies_playdate,'YYYY-MM-DD') as movies_playdate, d.fileName from t_cinema_movies g, t_cinema_movies_image d
+	        where g.movies_id=d.movies_id
+	        and d.filetype='main_image'
+	        and g.movies_id=#{movies_id}
+	        order by g.movies_id
+    	]]>
+	</select>
+	<select id="selectMoviesImageFileList" resultMap="imageResult"   parameterType="String"  >
+	    <![CDATA[
+		    	select * from  t_cinema_movies_image 
+		    	where  
+			    movies_id=#{movies_id}
+			    order by image_id asc
+    	]]>
+	</select>	
+	
+	
+<update id="updateMoviesInfo" parameterType="java.util.HashMap" >
+	   update t_cinema_movies
+	    <set> 
+	      <if test=" movies_title!='' and movies_title!=null">
+	        movies_title=#{movies_title},
+	      </if>
+	      <if test=" movies_genre!='' and movies_genre!=null">
+	        movies_genre=#{movies_genre},
+	      </if>
+	      <if test=" movies_country!='' and movies_country!=null">
+	        movies_country=#{movies_country},
+	      </if>
+	      <if test=" movies_running_time!='' and movies_running_time!=null">
+	        movies_running_time=#{movies_running_time},
+	      </if>
+	      <if test=" movies_playdate!='' and movies_playdate!=null">
+	        movies_playdate=#{movies_playdate},
+	      </if>
+	      <if test=" movies_age_restriction!='' and movies_age_restriction!=null">
+	        movies_age_restriction=#{movies_age_restriction},
+	      </if>
+	      <if test=" movies_total_attendancel!='' and movies_total_attendance!=null">
+	        movies_total_attendance=#{movies_total_attendance},
+	      </if>
+	      <if test=" movies_director!='' and movies_director!=null">
+	        movies_director=#{movies_director},
+	      </if>
+	      <if test=" movies_cast!='' and movies_cast!=null">
+	        movies_cast=#{movies_cast},
+	      </if>
+	      <if test=" movies_summary!='' and movies_summary!=null">
+	        movies_summary=#{movies_summary},
+	      </if>
+	      
+	     </set>
+	    where 
+	    movies_id=#{movies_id}
+	
+	</update>	
+	<update id="updateMoviesImage" parameterType="imageFileVO">
+		update t_cinema_movies_image
+		set fileName=#{fileName}
+		where	 
+		movies_id=#{movies_id} and image_id=#{image_id}
+	</update>
+	
+	<delete id="deleteMoviesImage" parameterType="String">
+	  delete from t_cinema_movies_image
+	  where image_id=#{image_id}
+	</delete>
+
+</mapper>
+
